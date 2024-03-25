@@ -1,9 +1,11 @@
 import os
 import pandas as pd
+import json
 
-FIRST_INDEX=1
+FIRST_INDEX=1     
 OUTPUT_PATH='./output.xlsx'
 ASTE_PATH='./aste'
+COMBINED_RESULT_PATH='./combined_result.xlsx'
 COLUMN_MAPPING= column_mapping = {
     'Index': ['Index'],
     'Maison': ['Maison'],
@@ -71,14 +73,36 @@ def parse_snapshot(snapshot_path: str) -> dict[str, str]:
                     break
             if key not in item:
                 item[key] = ''
+        if 'AuctionCode' not in item:
+            item['AuctionCode'] = ''
         if item['Event_ref'] != '' and item['PageUrl'] != '':
-            if item['Lot'] == '':
-                item['Lot'] = str(hash(item['PageUrl']))
             items.append(item)
     return items
 
+def parse_combined_result() -> dict[str, str]:
+    df = pd.read_excel(COMBINED_RESULT_PATH)
+    items = []
+    for i in range(len(df)):
+        xlsx_row = df.iloc[i]
+        item = {}
+        for column in ['Maison', 'Auction_title', 'AuctionCode']:
+            if column in xlsx_row and not pd.isna(xlsx_row[column]):
+                item[column] = str(xlsx_row[column])
+            else:
+                item[column] = ''
+        if item['Maison'] != '' and item['Auction_title'] != '' and item['AuctionCode'] != '':
+            items.append(item)
+    result = {}
+    for item in items:
+        result[get_key_for_combined(item)] = item['AuctionCode']
+    return result
+
 def get_key_from_vehicle(vehicle: dict[str, str]) -> str:
-    return vehicle['Event_ref'] + '/' + vehicle['Lot']
+    return vehicle['Event_ref'] + '///' + vehicle['PageUrl']
+
+def get_key_for_combined(item: dict[str, str], is_vehicle = False) -> str:
+    return item['Maison'] + '///' + item['Event_ref' if is_vehicle else 'Auction_title']
+
 def merge_vehicles(old: dict[str, str], new: dict[str, str]) -> dict[str, str]:
     if new['val_min'] == '':
         new['val_min'] = old['val_min']
@@ -86,6 +110,10 @@ def merge_vehicles(old: dict[str, str], new: dict[str, str]) -> dict[str, str]:
         new['val_max'] = old['val_max']
     if old['Index'] != '':
         new['Index'] = old['Index']
+    if old['Lot'] != '':
+        new['Lot'] = old['Lot']
+    if old['AuctionCode'] != '':
+        new['AuctionCode'] = old['AuctionCode']
     return new
 
 def add_vehicles_to_asta(asta_vehicles: dict[str, dict[str, str]], vehicles: dict[str, str]):
@@ -119,10 +147,10 @@ def get_max_index_of_current_vehicles(vehicles: dict[str, dict[str, str]]) -> in
             max_index = max(max_index, int(vehicles[key]['Index']))
     return max_index
 
-def get_all_vehicles() -> dict[str, dict[str, str]]:
+def get_all_vehicles(only_some = False) -> dict[str, dict[str, str]]:
     vehicles = {}
     aste = get_aste_paths()
-    for asta in aste:
+    for asta in (aste[1:2] if only_some else aste):
         print(asta)
         get_asta_vehicles(vehicles, asta)
     return vehicles
@@ -132,8 +160,29 @@ def numerate_new_vehicles(vehicles: dict[str, dict[str, str]], max_index: int):
         if 'Index' not in vehicles[key] or vehicles[key]['Index'] == '':
             vehicles[key]['Index'] = str(max_index)
             max_index += 1
-        
-def merge_current_and_new_vehicles(current_vehicles: dict[str, dict[str, str]], new_vehicles: dict[str, dict[str, str]], max_index: int) -> dict[str, dict[str, str]]:
+
+def assign_missing_lots(vehicles: dict[str, dict[str, str]]) -> None:
+    vehicles_tuples = sorted(list(vehicles.items()), key=lambda x: x[1]['Event_ref'])
+    current_event_ref = None
+    current_lot_index = 1
+    for key, vehicle in vehicles_tuples:
+        if current_event_ref != vehicle['Event_ref']:
+            current_event_ref = vehicle['Event_ref']
+            current_lot_index = 1
+        if vehicle['Lot'] == '':
+            vehicles[key]['Lot'] = str(current_lot_index)
+            current_lot_index += 1
+
+def combine_auction_codes(vehicles: dict[str, dict[str, str]], combined_results: dict[str, str]) -> None:
+    for key, vehicle in vehicles.items():
+        if vehicle['AuctionCode'] == '':
+            combined_key = get_key_for_combined(vehicle, True)
+            if combined_key in combined_results:
+                auction_code = combined_results[combined_key]
+                vehicles[key]['AuctionCode'] = auction_code
+            
+    
+def merge_current_and_new_vehicles(current_vehicles: dict[str, dict[str, str]], new_vehicles: dict[str, dict[str, str]], combined_results: dict[str, str], max_index: int) -> dict[str, dict[str, str]]:
     for key in new_vehicles:
         if key in current_vehicles:
             new_vehicles[key] = merge_vehicles(current_vehicles[key], new_vehicles[key])
@@ -141,16 +190,17 @@ def merge_current_and_new_vehicles(current_vehicles: dict[str, dict[str, str]], 
         if key not in new_vehicles:
             new_vehicles[key] = current_vehicles[key]
     numerate_new_vehicles(new_vehicles, max_index)
+    assign_missing_lots(new_vehicles)
+    combine_auction_codes(new_vehicles, combined_results)
     return new_vehicles
 
-
-    
 def save_vehicles(vehicles: dict[str, dict[str, str]], output_path: str):
     vehicles_rows = sorted(list(vehicles.values()), key=lambda x: int(x['Index']))
     df = pd.DataFrame(vehicles_rows)
     df.to_excel(output_path, index=False)
     
 if __name__ == '__main__':
+    combined_results = parse_combined_result()
     current_vehicles = get_current_vehicles()
     max_index = get_max_index_of_current_vehicles(current_vehicles)
     if (max_index >= FIRST_INDEX):
@@ -158,5 +208,5 @@ if __name__ == '__main__':
     elif (max_index - FIRST_INDEX > 100):
         raise Exception(f'Max index {max_index} is too far from {FIRST_INDEX}')
     vehicles = get_all_vehicles()
-    final_vehicles = merge_current_and_new_vehicles(current_vehicles, vehicles, max_index)
+    final_vehicles = merge_current_and_new_vehicles(current_vehicles, vehicles, combined_results, max_index)
     save_vehicles(final_vehicles, OUTPUT_PATH)

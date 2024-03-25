@@ -23,6 +23,7 @@ The auctions folder should contain a folder for each maison and each of those fo
 In the script `main.py` there are some constants that can be adjusted:
 - **FIRST_INDEX**: the smallest index that will be assigned to the constructed vehicles
 - **OUTPUT_PATH**: the path to the output excel file
+- **COMBINED_RESULT_PATH**: the path to the combined restults excel file
 - **ASTE_PATH**: the path to the folder containing the auction files
 - **COLUMN_MAPPING**: an object doing the mapping between wanted properties (keys) and possible column names in the scraped auction files (array of strings)
 
@@ -31,6 +32,8 @@ In the script `main.py` there are some constants that can be adjusted:
 1. If it exists, the current "output" excel file is loaded
 2. The max index of the current output is found and compared to the constant provided one. If it is not ok, an error is thrown
 3. For each maison, the auction files are detected (dir walking) and loaded via the mapping
-4. They are grouped by "Event_ref" and "Lot". If the lot does not exist, it becomes the hash of the "PageUrl". Rows withou "Event_ref" or "PageUrl" are discarded
+4. They are grouped by "Event_ref" and "PageUrl".
 5. Rows that end in the same group are merged, with the newest data overwriting the oldest, a part from "val_min" and "val_max" that are taken from the old in case the newest is empty.
-6. The rows are then added to the current loaded file. If the vehicles already exist, they are updated and the id remains the same, otherwise the vehicle is added with an incremental id starting from FIRST_INDEX
+6. If a lot does not exist, it is incrementally added from 1 for vehicles in the same auction (Event_ref)
+7. There is a file for the "combined_results", that contains "Event_ref" as "Auction_title", "Maison" and an "AuctionCode" that is assigned to the matching rows of the final file
+8. The rows are then added to the current loaded file. If the vehicles already exist, they are updated and the id remains the same, otherwise the vehicle is added with an incremental id starting from FIRST_INDEX
