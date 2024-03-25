@@ -10,7 +10,8 @@ COMBINED_MAISON_MAPPING = {
     'BringATrailer': 'BringTrailer',
     'CarsAndClassic': 'CarAndClassic',
     'P_CarMarket': 'P CarMarket',
-    'Sothebys': 'RmSotheby\'s'
+    'Sothebys': 'RmSotheby\'s',
+    'H&H Classic': 'H&H'
 }
 COLUMN_MAPPING= column_mapping = {
     'Index': ['Index'],
@@ -88,6 +89,11 @@ def parse_snapshot(snapshot_path: str) -> dict[str, str]:
             items.append(item)
     return items
 
+def fix_combined_maison(maison: str) -> str:
+    if maison in COMBINED_MAISON_MAPPING.keys():
+        return COMBINED_MAISON_MAPPING[maison]
+    return maison
+
 def parse_combined_result() -> dict[str, str]:
     df = pd.read_excel(COMBINED_RESULT_PATH)
     items = []
@@ -100,8 +106,7 @@ def parse_combined_result() -> dict[str, str]:
             else:
                 item[column] = ''
         if item['Maison'] != '' and item['Auction_title'] != '' and item['AuctionCode'] != '':
-            if item['Maison'] in COMBINED_MAISON_MAPPING.keys():
-                item['Maison'] = COMBINED_MAISON_MAPPING[item['Maison']]
+            item['Maison'] = fix_combined_maison(item['Maison'])
             items.append(item)
     result = {}
     for item in items:
@@ -113,6 +118,14 @@ def get_key_from_vehicle(vehicle: dict[str, str]) -> str:
     return to_lowercase_without_apixes(vehicle['Event_ref'] + '///' + vehicle['PageUrl'])
 
 def get_key_for_combined(item: dict[str, str], is_vehicle = False, with_subtitle = False) -> str:
+    if fix_combined_maison(item['Maison']) == 'Catawiki':
+        internal_code = item['Event_ref'] if is_vehicle else item['Auction_internal_code']  
+        return to_lowercase_without_apixes('Catawiki_special_case' + '///' + internal_code)
+
+    if fix_combined_maison(item['Maison']) == 'H&H':
+        val = item['Event_ref'] if is_vehicle else ('https://www.handh.co.uk/auction/search?au=' + item['Auction_internal_code'])
+        return to_lowercase_without_apixes(val)
+    
     title = item['Event_ref'] if is_vehicle else (item['Auction_title'] + ' ' + item['Subtitle'] if with_subtitle else item['Auction_title'])
     return to_lowercase_without_apixes(item['Maison'] + '///' + title)
 
