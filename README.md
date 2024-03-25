@@ -24,6 +24,7 @@ In the script `main.py` there are some constants that can be adjusted:
 - **FIRST_INDEX**: the smallest index that will be assigned to the constructed vehicles
 - **OUTPUT_PATH**: the path to the output excel file
 - **COMBINED_RESULT_PATH**: the path to the combined restults excel file
+- **COMBINED_MAISON_MAPPING**: an object for the mapping of the "Maison" name between the combined results and the auction files
 - **ASTE_PATH**: the path to the folder containing the auction files
 - **COLUMN_MAPPING**: an object doing the mapping between wanted properties (keys) and possible column names in the scraped auction files (array of strings)
 
