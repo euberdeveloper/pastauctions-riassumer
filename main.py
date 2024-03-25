@@ -6,6 +6,12 @@ FIRST_INDEX=23874
 OUTPUT_PATH='./output.xlsx'
 ASTE_PATH='./aste'
 COMBINED_RESULT_PATH='./combined_result.xlsx'
+COMBINED_MAISON_MAPPING = {
+    'BringATrailer': 'BringTrailer',
+    'CarsAndClassic': 'CarAndClassic',
+    'P_CarMarket': 'P CarMarket',
+    'Sothebys': 'RmSotheby\'s'
+}
 COLUMN_MAPPING= column_mapping = {
     'Index': ['Index'],
     'Maison': ['Maison'],
@@ -88,12 +94,14 @@ def parse_combined_result() -> dict[str, str]:
     for i in range(len(df)):
         xlsx_row = df.iloc[i]
         item = {}
-        for column in ['Maison', 'Auction_title', 'AuctionCode']:
+        for column in ['Maison', 'Auction_title', 'AuctionCode', 'Auction_internal_code']:
             if column in xlsx_row and not pd.isna(xlsx_row[column]):
                 item[column] = str(xlsx_row[column])
             else:
                 item[column] = ''
         if item['Maison'] != '' and item['Auction_title'] != '' and item['AuctionCode'] != '':
+            if item['Maison'] in COMBINED_MAISON_MAPPING.keys():
+                item['Maison'] = COMBINED_MAISON_MAPPING[item['Maison']]
             items.append(item)
     result = {}
     for item in items:
