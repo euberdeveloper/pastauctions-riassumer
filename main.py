@@ -94,7 +94,7 @@ def parse_combined_result() -> dict[str, str]:
     for i in range(len(df)):
         xlsx_row = df.iloc[i]
         item = {}
-        for column in ['Maison', 'Auction_title', 'AuctionCode', 'Auction_internal_code']:
+        for column in ['Maison', 'Auction_title', 'Subtitle', 'AuctionCode', 'Auction_internal_code']:
             if column in xlsx_row and not pd.isna(xlsx_row[column]):
                 item[column] = str(xlsx_row[column])
             else:
@@ -106,13 +106,15 @@ def parse_combined_result() -> dict[str, str]:
     result = {}
     for item in items:
         result[get_key_for_combined(item)] = item['AuctionCode']
+        result[get_key_for_combined(item, with_subtitle=True)] = item['AuctionCode']
     return result
 
 def get_key_from_vehicle(vehicle: dict[str, str]) -> str:
     return to_lowercase_without_apixes(vehicle['Event_ref'] + '///' + vehicle['PageUrl'])
 
-def get_key_for_combined(item: dict[str, str], is_vehicle = False) -> str:
-    return to_lowercase_without_apixes(item['Maison'] + '///' + item['Event_ref' if is_vehicle else 'Auction_title'])
+def get_key_for_combined(item: dict[str, str], is_vehicle = False, with_subtitle = False) -> str:
+    title = item['Event_ref'] if is_vehicle else (item['Auction_title'] + ' ' + item['Subtitle'] if with_subtitle else item['Auction_title'])
+    return to_lowercase_without_apixes(item['Maison'] + '///' + title)
 
 def merge_vehicles(old: dict[str, str], new: dict[str, str]) -> dict[str, str]:
     if new['val_min'] == '':
@@ -187,7 +189,7 @@ def assign_missing_lots(vehicles: dict[str, dict[str, str]]) -> None:
 def combine_auction_codes(vehicles: dict[str, dict[str, str]], combined_results: dict[str, str]) -> None:
     for key, vehicle in vehicles.items():
         if vehicle['AuctionCode'] == '':
-            combined_key = get_key_for_combined(vehicle, True)
+            combined_key = get_key_for_combined(vehicle, is_vehicle=True)
             if combined_key in combined_results:
                 auction_code = combined_results[combined_key]
                 vehicles[key]['AuctionCode'] = auction_code
@@ -217,6 +219,6 @@ if __name__ == '__main__':
         raise Exception(f'Max index {max_index} is greater or equal than {FIRST_INDEX}')
     elif (max_index - FIRST_INDEX > 100):
         raise Exception(f'Max index {max_index} is too far from {FIRST_INDEX}')
-    vehicles = get_all_vehicles(True)
+    vehicles = get_all_vehicles(False)
     final_vehicles = merge_current_and_new_vehicles(current_vehicles, vehicles, combined_results, max_index)
     save_vehicles(final_vehicles, OUTPUT_PATH)
