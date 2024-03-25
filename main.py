@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-FIRST_INDEX=16990
+FIRST_INDEX=1
 OUTPUT_PATH='./output.xlsx'
 ASTE_PATH='./aste'
 COLUMN_MAPPING= column_mapping = {
@@ -71,7 +71,9 @@ def parse_snapshot(snapshot_path: str) -> dict[str, str]:
                     break
             if key not in item:
                 item[key] = ''
-        if item['Event_ref'] != '' and item['Lot'] != '':
+        if item['Event_ref'] != '' and item['PageUrl'] != '':
+            if item['Lot'] == '':
+                item['Lot'] = str(hash(item['PageUrl']))
             items.append(item)
     return items
 
