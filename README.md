@@ -37,3 +37,8 @@ In the script `main.py` there are some constants that can be adjusted:
 6. If a lot does not exist, it is incrementally added from 1 for vehicles in the same auction (Event_ref)
 7. There is a file for the "combined_results", that contains "Event_ref" as "Auction_title", "Maison" and an "AuctionCode" that is assigned to the matching rows of the final file
 8. The rows are then added to the current loaded file. If the vehicles already exist, they are updated and the id remains the same, otherwise the vehicle is added with an incremental id starting from FIRST_INDEX
+
+Note: this fixes have been done:
+* The reference values for doing matchings, both among vehicles in the scarpings and among the combined results, are insensitive and strip apixes and "virgolette"
+* For the combined results, the "Maison" is fixed to be the one of the other file. Also, both Auction title and Auction Title + Subtitle are tried for matching the Event title.
+* For the combined results, "Catawiki" and "H&H" have their own way of mapping
