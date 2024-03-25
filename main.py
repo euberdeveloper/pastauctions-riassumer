@@ -53,6 +53,9 @@ COLUMN_MAPPING= column_mapping = {
     'SourceDate': [''],
 }
 
+def to_lowercase_without_apixes(s: str) -> str:
+    return s.lower().replace('\'', '').replace('"', '')
+
 def get_aste_paths() -> list[str]:
     return sorted([f.path for f in os.scandir(ASTE_PATH) if f.is_dir()])
 
@@ -98,10 +101,10 @@ def parse_combined_result() -> dict[str, str]:
     return result
 
 def get_key_from_vehicle(vehicle: dict[str, str]) -> str:
-    return (vehicle['Event_ref'] + '///' + vehicle['PageUrl']).lower()
+    return to_lowercase_without_apixes(vehicle['Event_ref'] + '///' + vehicle['PageUrl'])
 
 def get_key_for_combined(item: dict[str, str], is_vehicle = False) -> str:
-    return (item['Maison'] + '///' + item['Event_ref' if is_vehicle else 'Auction_title']).lower()
+    return to_lowercase_without_apixes(item['Maison'] + '///' + item['Event_ref' if is_vehicle else 'Auction_title'])
 
 def merge_vehicles(old: dict[str, str], new: dict[str, str]) -> dict[str, str]:
     if new['val_min'] == '':
@@ -206,6 +209,6 @@ if __name__ == '__main__':
         raise Exception(f'Max index {max_index} is greater or equal than {FIRST_INDEX}')
     elif (max_index - FIRST_INDEX > 100):
         raise Exception(f'Max index {max_index} is too far from {FIRST_INDEX}')
-    vehicles = get_all_vehicles(False)
+    vehicles = get_all_vehicles(True)
     final_vehicles = merge_current_and_new_vehicles(current_vehicles, vehicles, combined_results, max_index)
     save_vehicles(final_vehicles, OUTPUT_PATH)
