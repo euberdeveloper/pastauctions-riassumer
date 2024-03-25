@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import json
 
-FIRST_INDEX=1     
+FIRST_INDEX=23874
 OUTPUT_PATH='./output.xlsx'
 ASTE_PATH='./aste'
 COMBINED_RESULT_PATH='./combined_result.xlsx'
@@ -98,10 +98,10 @@ def parse_combined_result() -> dict[str, str]:
     return result
 
 def get_key_from_vehicle(vehicle: dict[str, str]) -> str:
-    return vehicle['Event_ref'] + '///' + vehicle['PageUrl']
+    return (vehicle['Event_ref'] + '///' + vehicle['PageUrl']).lower()
 
 def get_key_for_combined(item: dict[str, str], is_vehicle = False) -> str:
-    return item['Maison'] + '///' + item['Event_ref' if is_vehicle else 'Auction_title']
+    return (item['Maison'] + '///' + item['Event_ref' if is_vehicle else 'Auction_title']).lower()
 
 def merge_vehicles(old: dict[str, str], new: dict[str, str]) -> dict[str, str]:
     if new['val_min'] == '':
@@ -180,7 +180,6 @@ def combine_auction_codes(vehicles: dict[str, dict[str, str]], combined_results:
             if combined_key in combined_results:
                 auction_code = combined_results[combined_key]
                 vehicles[key]['AuctionCode'] = auction_code
-            
     
 def merge_current_and_new_vehicles(current_vehicles: dict[str, dict[str, str]], new_vehicles: dict[str, dict[str, str]], combined_results: dict[str, str], max_index: int) -> dict[str, dict[str, str]]:
     for key in new_vehicles:
@@ -207,6 +206,6 @@ if __name__ == '__main__':
         raise Exception(f'Max index {max_index} is greater or equal than {FIRST_INDEX}')
     elif (max_index - FIRST_INDEX > 100):
         raise Exception(f'Max index {max_index} is too far from {FIRST_INDEX}')
-    vehicles = get_all_vehicles()
+    vehicles = get_all_vehicles(False)
     final_vehicles = merge_current_and_new_vehicles(current_vehicles, vehicles, combined_results, max_index)
     save_vehicles(final_vehicles, OUTPUT_PATH)
