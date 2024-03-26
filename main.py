@@ -77,7 +77,7 @@ def get_aste_paths() -> list[str]:
     return sorted([f.path for f in os.scandir(ASTE_PATH) if f.is_dir() and f.name.startswith('Gen_')])
 
 def get_snapshots_of_asta(asta_path: str) -> list[str]:
-    return sorted(filter([f.path for f in os.scandir(asta_path + '/NuoveAste') if f.is_file() and f.name.endswith('.xlsx')], lambda x: x.startswith(ASTE_FILES_PREFIXES)))
+    return sorted([f.path for f in os.scandir(asta_path + '/NuoveAste') if f.is_file() and f.name.endswith('.xlsx') and f.name.startswith(ASTE_FILES_PREFIXES)])
 
 def parse_snapshot(snapshot_path: str) -> dict[str, str]:
     df = pd.read_excel(snapshot_path)
