@@ -108,7 +108,7 @@ def parse_combined_result() -> dict[str, str]:
     for i in range(len(df)):
         xlsx_row = df.iloc[i]
         item = {}
-        for column in ['Maison', 'Auction_title', 'Subtitle', 'AuctionCode', 'Auction_internal_code']:
+        for column in ['Maison', 'Auction_title', 'Subtitle', 'AuctionCode', 'Auction_internal_code', 'URL website']:
             if column in xlsx_row and not pd.isna(xlsx_row[column]):
                 item[column] = str(xlsx_row[column])
                 if column == 'Auction_internal_code':
@@ -133,7 +133,7 @@ def get_key_for_combined(item: dict[str, str], is_vehicle = False, with_subtitle
         return to_lowercase_purged('Catawiki_special_case' + '///' + internal_code)
 
     if fix_combined_maison(item['Maison']) == 'H&H':
-        val = item['Event_ref'] if is_vehicle else ('https://www.handh.co.uk/auction/search?au=' + item['Auction_internal_code'])
+        val = ('https://www.handh.co.uk/auction/search?au=' + item['Event_ref']) if is_vehicle else item['URL website']
         return to_lowercase_purged(val)
     
     title = item['Event_ref'] if is_vehicle else (item['Auction_title'] + ' ' + item['Subtitle'] if with_subtitle else item['Auction_title'])
@@ -186,7 +186,7 @@ def get_max_index_of_current_vehicles(vehicles: dict[str, dict[str, str]]) -> in
 def get_all_vehicles(only_some = False) -> dict[str, dict[str, str]]:
     vehicles = {}
     aste = get_aste_paths()
-    for asta in (aste[5:6] if only_some else aste):
+    for asta in (aste[7:8] if only_some else aste):
         print(asta)
         get_asta_vehicles(vehicles, asta)
     return vehicles
