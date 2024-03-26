@@ -27,6 +27,7 @@ In the script `main.py` there are some constants that can be adjusted:
 - **COMBINED_MAISON_MAPPING**: an object for the mapping of the "Maison" name between the combined results and the auction files
 - **CHARACTERS_TO_PURGE**: an object whose keys will be replaced to the values for the associations
 - **ASTE_PATH**: the path to the folder containing the auction files
+- **ASTE_FILES_PREFIXES**: the prefix that the considered file names should have
 - **COLUMN_MAPPING**: an object doing the mapping between wanted properties (keys) and possible column names in the scraped auction files (array of strings)
 
 ## How does it work
