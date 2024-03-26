@@ -143,7 +143,7 @@ def get_key_for_combined(item: dict[str, str], is_vehicle = False, with_subtitle
     
     if fix_combined_maison(item['Maison']) == 'Hermans':
         if is_vehicle:
-            regexp_vehicle = "https://www\.automotive-auctions\.nl/en/offer/A1-(\d+)(^[\d])*"
+            regexp_vehicle = "https://www\.automotive-auctions\.nl/en/offer/A1-(\d+)-?.*"
             text = item['PageUrl']
             match = re.search(regexp_vehicle, text)
             if not match:
@@ -279,6 +279,6 @@ if __name__ == '__main__':
         raise Exception(f'Max index {max_index} is greater or equal than {FIRST_INDEX}')
     elif (max_index - FIRST_INDEX > 100):
         raise Exception(f'Max index {max_index} is too far from {FIRST_INDEX}')
-    vehicles = get_all_vehicles(True)
+    vehicles = get_all_vehicles(False)
     final_vehicles = merge_current_and_new_vehicles(current_vehicles, vehicles, combined_results, max_index)
     save_vehicles(final_vehicles, OUTPUT_PATH)
