@@ -111,6 +111,8 @@ def parse_combined_result() -> dict[str, str]:
         for column in ['Maison', 'Auction_title', 'Subtitle', 'AuctionCode', 'Auction_internal_code']:
             if column in xlsx_row and not pd.isna(xlsx_row[column]):
                 item[column] = str(xlsx_row[column])
+                if column == 'Auction_internal_code':
+                    item[column] = item[column].replace('.0', '')
             else:
                 item[column] = ''
         if item['Maison'] != '' and item['Auction_title'] != '' and item['AuctionCode'] != '':
@@ -184,7 +186,7 @@ def get_max_index_of_current_vehicles(vehicles: dict[str, dict[str, str]]) -> in
 def get_all_vehicles(only_some = False) -> dict[str, dict[str, str]]:
     vehicles = {}
     aste = get_aste_paths()
-    for asta in (aste[1:2] if only_some else aste):
+    for asta in (aste[5:6] if only_some else aste):
         print(asta)
         get_asta_vehicles(vehicles, asta)
     return vehicles
@@ -240,6 +242,6 @@ if __name__ == '__main__':
         raise Exception(f'Max index {max_index} is greater or equal than {FIRST_INDEX}')
     elif (max_index - FIRST_INDEX > 100):
         raise Exception(f'Max index {max_index} is too far from {FIRST_INDEX}')
-    vehicles = get_all_vehicles(False)
+    vehicles = get_all_vehicles(True)
     final_vehicles = merge_current_and_new_vehicles(current_vehicles, vehicles, combined_results, max_index)
     save_vehicles(final_vehicles, OUTPUT_PATH)
