@@ -230,6 +230,7 @@ def get_all_vehicles(only_some = False) -> dict[str, dict[str, str]]:
     return vehicles
         
 def numerate_new_vehicles(vehicles: dict[str, dict[str, str]], max_index: int):
+    max_index = max(max_index, FIRST_INDEX)
     for key in vehicles:
         if 'Index' not in vehicles[key] or vehicles[key]['Index'] == '':
             vehicles[key]['Index'] = str(max_index)
