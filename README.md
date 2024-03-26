@@ -25,6 +25,7 @@ In the script `main.py` there are some constants that can be adjusted:
 - **OUTPUT_PATH**: the path to the output excel file
 - **COMBINED_RESULT_PATH**: the path to the combined restults excel file
 - **COMBINED_MAISON_MAPPING**: an object for the mapping of the "Maison" name between the combined results and the auction files
+- **CHARACTERS_TO_PURGE**: an object whose keys will be replaced to the values for the associations
 - **ASTE_PATH**: the path to the folder containing the auction files
 - **COLUMN_MAPPING**: an object doing the mapping between wanted properties (keys) and possible column names in the scraped auction files (array of strings)
 
@@ -40,6 +41,6 @@ In the script `main.py` there are some constants that can be adjusted:
 8. The rows are then added to the current loaded file. If the vehicles already exist, they are updated and the id remains the same, otherwise the vehicle is added with an incremental id starting from FIRST_INDEX
 
 Note: this fixes have been done:
-* The reference values for doing matchings, both among vehicles in the scarpings and among the combined results, are insensitive and strip apixes and "virgolette"
+* The reference values for doing matchings, both among vehicles in the scarpings and among the combined results, are insensitive and strip apixes and "virgolette". Actually COMBINED_MAISON_MAPPING is used for the purging.
 * For the combined results, the "Maison" is fixed to be the one of the other file. Also, both Auction title and Auction Title + Subtitle are tried for matching the Event title.
 * For the combined results, "Catawiki" and "H&H" have their own way of mapping

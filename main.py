@@ -8,10 +8,15 @@ ASTE_PATH='./aste'
 COMBINED_RESULT_PATH='./combined_result.xlsx'
 COMBINED_MAISON_MAPPING = {
     'BringATrailer': 'BringTrailer',
-    'CarsAndClassic': 'CarAndClassic',
+    'CarAndClassic': 'CarsAndClassic',
     'P_CarMarket': 'P CarMarket',
     'Sothebys': 'RmSotheby\'s',
     'H&H Classic': 'H&H'
+}
+CHARACTERS_TO_PURGE = {
+    '\'': '',
+    '"': '',
+    'à': 'a'
 }
 COLUMN_MAPPING= column_mapping = {
     'Index': ['Index'],
@@ -60,8 +65,11 @@ COLUMN_MAPPING= column_mapping = {
     'SourceDate': [''],
 }
 
-def to_lowercase_without_apixes(s: str) -> str:
-    return s.lower().replace('\'', '').replace('"', '')
+def to_lowercase_purged(s: str) -> str:
+    s = s.lower()
+    for input, output in CHARACTERS_TO_PURGE.items():
+        s = s.replace(input, output)
+    return s
 
 def get_aste_paths() -> list[str]:
     return sorted([f.path for f in os.scandir(ASTE_PATH) if f.is_dir()])
@@ -115,19 +123,19 @@ def parse_combined_result() -> dict[str, str]:
     return result
 
 def get_key_from_vehicle(vehicle: dict[str, str]) -> str:
-    return to_lowercase_without_apixes(vehicle['Event_ref'] + '///' + vehicle['PageUrl'])
+    return to_lowercase_purged(vehicle['Event_ref'] + '///' + vehicle['PageUrl'])
 
 def get_key_for_combined(item: dict[str, str], is_vehicle = False, with_subtitle = False) -> str:
     if fix_combined_maison(item['Maison']) == 'Catawiki':
         internal_code = item['Event_ref'] if is_vehicle else item['Auction_internal_code']  
-        return to_lowercase_without_apixes('Catawiki_special_case' + '///' + internal_code)
+        return to_lowercase_purged('Catawiki_special_case' + '///' + internal_code)
 
     if fix_combined_maison(item['Maison']) == 'H&H':
         val = item['Event_ref'] if is_vehicle else ('https://www.handh.co.uk/auction/search?au=' + item['Auction_internal_code'])
-        return to_lowercase_without_apixes(val)
+        return to_lowercase_purged(val)
     
     title = item['Event_ref'] if is_vehicle else (item['Auction_title'] + ' ' + item['Subtitle'] if with_subtitle else item['Auction_title'])
-    return to_lowercase_without_apixes(item['Maison'] + '///' + title)
+    return to_lowercase_purged(item['Maison'] + '///' + title)
 
 def merge_vehicles(old: dict[str, str], new: dict[str, str]) -> dict[str, str]:
     if new['val_min'] == '':
