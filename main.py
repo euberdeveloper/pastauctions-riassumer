@@ -133,7 +133,7 @@ def parse_combined_result() -> dict[str, str]:
 def get_key_from_vehicle(vehicle: dict[str, str]) -> str:
     return to_lowercase_purged(vehicle['Event_ref'] + '///' + vehicle['PageUrl'])
 
-def get_key_for_combined(item: dict[str, str], is_vehicle = False, with_subtitle = False) -> str | None:
+def get_key_for_combined(item: dict[str, str], is_vehicle = False, with_subtitle = False):
     if fix_combined_maison(item['Maison']) == 'Catawiki':
         internal_code = item['Event_ref'] if is_vehicle else item['Auction_internal_code']  
         return to_lowercase_purged('Catawiki_special_case' + '///' + internal_code)
