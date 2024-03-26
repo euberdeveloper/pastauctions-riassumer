@@ -1,4 +1,5 @@
 import os
+import re
 import pandas as pd
 import json
 
@@ -136,6 +137,27 @@ def get_key_for_combined(item: dict[str, str], is_vehicle = False, with_subtitle
         val = ('https://www.handh.co.uk/auction/search?au=' + item['Event_ref']) if is_vehicle else item['URL website']
         return to_lowercase_purged(val)
     
+    if fix_combined_maison(item['Maison']) == 'Hermans':
+        if is_vehicle:
+            regexp_vehicle = "https://www\.automotive-auctions\.nl/en/offer/A1-(\d+)(^[\d])*"
+            text = item['PageUrl']
+            match = re.search(regexp_vehicle, text)
+            if not match:
+                print(text)
+                raise('Herman not matching regexp')
+            return to_lowercase_purged('Hermans_special_case///' + match.group(1))
+        else:
+            regexp_combined = "https://www\.automotive-auctions\.nl/en/offer/A?1?-?(\d+)-?.*/"
+            text = item['URL website']
+            match = re.search(regexp_combined, text)
+            if not match:
+                print(text)
+                raise('Herman not matching regexp')
+
+            return to_lowercase_purged('Hermans_special_case///' + match.group(1))
+
+        
+    
     title = item['Event_ref'] if is_vehicle else (item['Auction_title'] + ' ' + item['Subtitle'] if with_subtitle else item['Auction_title'])
     return to_lowercase_purged(item['Maison'] + '///' + title)
 
@@ -186,7 +208,7 @@ def get_max_index_of_current_vehicles(vehicles: dict[str, dict[str, str]]) -> in
 def get_all_vehicles(only_some = False) -> dict[str, dict[str, str]]:
     vehicles = {}
     aste = get_aste_paths()
-    for asta in (aste[7:8] if only_some else aste):
+    for asta in (aste[8:9] if only_some else aste):
         print(asta)
         get_asta_vehicles(vehicles, asta)
     return vehicles
