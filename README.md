@@ -43,4 +43,4 @@ In the script `main.py` there are some constants that can be adjusted:
 Note: this fixes have been done:
 * The reference values for doing matchings, both among vehicles in the scarpings and among the combined results, are insensitive and strip apixes and "virgolette". Actually COMBINED_MAISON_MAPPING is used for the purging.
 * For the combined results, the "Maison" is fixed to be the one of the other file. Also, both Auction title and Auction Title + Subtitle are tried for matching the Event title.
-* For the combined results, "Catawiki", "H&H" and "Hermans" have their own way of mapping
+* For the combined results, "Catawiki", "H&H", "Hermans" and "Brightwells" have their own way of mapping

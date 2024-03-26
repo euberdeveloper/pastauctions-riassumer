@@ -121,14 +121,18 @@ def parse_combined_result() -> dict[str, str]:
             items.append(item)
     result = {}
     for item in items:
-        result[get_key_for_combined(item)] = item['AuctionCode']
-        result[get_key_for_combined(item, with_subtitle=True)] = item['AuctionCode']
+        key = get_key_for_combined(item)
+        if key is not None:
+            result[get_key_for_combined(item)] = item['AuctionCode']
+        key = get_key_for_combined(item, with_subtitle=True)
+        if key is not None:
+            result[get_key_for_combined(item, with_subtitle=True)] = item['AuctionCode']
     return result
 
 def get_key_from_vehicle(vehicle: dict[str, str]) -> str:
     return to_lowercase_purged(vehicle['Event_ref'] + '///' + vehicle['PageUrl'])
 
-def get_key_for_combined(item: dict[str, str], is_vehicle = False, with_subtitle = False) -> str:
+def get_key_for_combined(item: dict[str, str], is_vehicle = False, with_subtitle = False) -> str | None:
     if fix_combined_maison(item['Maison']) == 'Catawiki':
         internal_code = item['Event_ref'] if is_vehicle else item['Auction_internal_code']  
         return to_lowercase_purged('Catawiki_special_case' + '///' + internal_code)
@@ -155,8 +159,19 @@ def get_key_for_combined(item: dict[str, str], is_vehicle = False, with_subtitle
                 raise('Herman not matching regexp')
 
             return to_lowercase_purged('Hermans_special_case///' + match.group(1))
-
         
+    if fix_combined_maison(item['Maison']) == 'Brightwells':
+        if is_vehicle:
+            val = item['Event_ref']
+        else:
+            regexp_combined = "https://www\.brightwells\.com/timed-sale/(\d+)\??.*"
+            text = item['URL website']
+            match = re.search(regexp_combined, text)
+            if not match:
+                print('Brightwells not matching regexp: ', text)
+                return None
+            val = match.group(1)
+        return to_lowercase_purged('Brightwells_special_case///' + val)
     
     title = item['Event_ref'] if is_vehicle else (item['Auction_title'] + ' ' + item['Subtitle'] if with_subtitle else item['Auction_title'])
     return to_lowercase_purged(item['Maison'] + '///' + title)
@@ -208,7 +223,7 @@ def get_max_index_of_current_vehicles(vehicles: dict[str, dict[str, str]]) -> in
 def get_all_vehicles(only_some = False) -> dict[str, dict[str, str]]:
     vehicles = {}
     aste = get_aste_paths()
-    for asta in (aste[8:9] if only_some else aste):
+    for asta in (aste[2:3] if only_some else aste):
         print(asta)
         get_asta_vehicles(vehicles, asta)
     return vehicles
