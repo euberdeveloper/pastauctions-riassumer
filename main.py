@@ -66,7 +66,7 @@ COLUMN_MAPPING= column_mapping = {
     'Alimentation': [''],
     'SourceDate': [''],
 }
-USE_PREFIX_CHECK_ON_EXCEL_FILES = False
+USE_PREFIX_CHECK_ON_EXCEL_FILES = True
 
 def to_lowercase_purged(s: str) -> str:
     s = s.lower()
