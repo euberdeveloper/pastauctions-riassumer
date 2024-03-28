@@ -182,6 +182,19 @@ def get_key_for_combined(item: dict[str, str], is_vehicle = False, with_subtitle
             val = match.group(1)
         return to_lowercase_purged('Brightwells_special_case///' + val)
     
+    if fix_combined_maison(item['Maison']) == 'Vavato':
+        if is_vehicle:
+            val = item['PageUrl_extract']
+        else:
+            regexp_combined = "https://.*(A3-[\d-]+)"
+            text = item['URL website']
+            match = re.search(regexp_combined, text)
+            if not match:
+                print('Vavato not matching regexp: ', text)
+                return None
+            val = match.group(1)
+        return to_lowercase_purged('Vavato_special_case///' + val)
+    
     title = item['Event_ref'] if is_vehicle else (item['Auction_title'] + ' ' + item['Subtitle'] if with_subtitle else item['Auction_title'])
     return to_lowercase_purged(item['Maison'] + '///' + title)
 
