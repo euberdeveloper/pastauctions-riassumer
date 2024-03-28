@@ -3,7 +3,7 @@ import re
 import pandas as pd
 import json
 
-FIRST_INDEX=23874
+FIRST_INDEX=4191
 OUTPUT_PATH='./output.xlsx'
 ASTE_PATH='./aste'
 ASTE_FILES_PREFIX='RisultatoGlobale_'
@@ -66,6 +66,7 @@ COLUMN_MAPPING= column_mapping = {
     'Alimentation': [''],
     'SourceDate': [''],
 }
+USE_PREFIX_CHECK_ON_EXCEL_FILES = True
 
 def to_lowercase_purged(s: str) -> str:
     s = s.lower()
@@ -77,7 +78,7 @@ def get_aste_paths() -> list[str]:
     return sorted([f.path for f in os.scandir(ASTE_PATH) if f.is_dir() and f.name.startswith('Gen_')])
 
 def get_snapshots_of_asta(asta_path: str) -> list[str]:
-    return sorted([f.path for f in os.scandir(asta_path + '/NuoveAste') if f.is_file() and f.name.endswith('.xlsx') and f.name.startswith(ASTE_FILES_PREFIX)])
+    return sorted([f.path for f in os.scandir(asta_path + '/NuoveAste') if f.is_file() and f.name.endswith('.xlsx') and (f.name.startswith(ASTE_FILES_PREFIX) or not USE_PREFIX_CHECK_ON_EXCEL_FILES)])
 
 def parse_snapshot(snapshot_path: str) -> dict[str, str]:
     df = pd.read_excel(snapshot_path)
@@ -218,23 +219,24 @@ def get_max_index_of_current_vehicles(vehicles: dict[str, dict[str, str]]) -> in
     max_index = 0
     for key in vehicles:
         if 'Index' in vehicles[key] and vehicles[key]['Index'] != '':
-            max_index = max(max_index, int(vehicles[key]['Index']))
-    return max_index
+            max_index = int(max(int(max_index), int(vehicles[key]['Index'])))
+    return int(max_index)
 
 def get_all_vehicles(only_some = False) -> dict[str, dict[str, str]]:
     vehicles = {}
     aste = get_aste_paths()
-    for asta in (aste[2:3] if only_some else aste):
+    for asta in (aste[4:5] if only_some else aste):
         print(asta)
         get_asta_vehicles(vehicles, asta)
     return vehicles
         
 def numerate_new_vehicles(vehicles: dict[str, dict[str, str]], max_index: int):
-    max_index = max(max_index, FIRST_INDEX)
+    max_index = int(max(max_index, int(FIRST_INDEX)))
     for key in vehicles:
         if 'Index' not in vehicles[key] or vehicles[key]['Index'] == '':
             vehicles[key]['Index'] = str(max_index)
             max_index += 1
+    print("The new index must be: ", (max_index + 1))
 
 def assign_missing_lots(vehicles: dict[str, dict[str, str]]) -> None:
     vehicles_tuples = sorted(list(vehicles.items()), key=lambda x: x[1]['Event_ref'])
@@ -281,6 +283,6 @@ if __name__ == '__main__':
         raise Exception(f'Max index {max_index} is greater or equal than {FIRST_INDEX}')
     elif (max_index - FIRST_INDEX > 100):
         raise Exception(f'Max index {max_index} is too far from {FIRST_INDEX}')
-    vehicles = get_all_vehicles(False)
+    vehicles = get_all_vehicles(only_some=True)
     final_vehicles = merge_current_and_new_vehicles(current_vehicles, vehicles, combined_results, max_index)
     save_vehicles(final_vehicles, OUTPUT_PATH)

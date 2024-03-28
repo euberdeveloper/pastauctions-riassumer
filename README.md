@@ -27,8 +27,9 @@ In the script `main.py` there are some constants that can be adjusted:
 - **COMBINED_MAISON_MAPPING**: an object for the mapping of the "Maison" name between the combined results and the auction files
 - **CHARACTERS_TO_PURGE**: an object whose keys will be replaced to the values for the associations
 - **ASTE_PATH**: the path to the folder containing the auction files
-- **ASTE_FILES_PREFIXES**: the prefix that the considered file names should have
+- **ASTE_FILES_PREFIX**: the prefix that the considered file names should have
 - **COLUMN_MAPPING**: an object doing the mapping between wanted properties (keys) and possible column names in the scraped auction files (array of strings)
+- **USE_PREFIX_CHECK_ON_EXCEL_FILES**: if you want to not use the effect of ASTE_FILES_PREFIX (for debug purposes)
 
 ## How does it work
 
@@ -40,6 +41,7 @@ In the script `main.py` there are some constants that can be adjusted:
 6. If a lot does not exist, it is incrementally added from 1 for vehicles in the same auction (Event_ref)
 7. There is a file for the "combined_results", that contains "Event_ref" as "Auction_title", "Maison" and an "AuctionCode" that is assigned to the matching rows of the final file
 8. The rows are then added to the current loaded file. If the vehicles already exist, they are updated and the id remains the same, otherwise the vehicle is added with an incremental id starting from FIRST_INDEX
+* At the end of the script it is written what number should be assigned to the FIRST_INDEX after this run
 
 Note: this fixes have been done:
 * The reference values for doing matchings, both among vehicles in the scarpings and among the combined results, are insensitive and strip apixes and "virgolette". Actually COMBINED_MAISON_MAPPING is used for the purging.
