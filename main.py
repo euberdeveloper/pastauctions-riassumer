@@ -3,7 +3,7 @@ import re
 import pandas as pd
 import json
 
-FIRST_INDEX=4191
+FIRST_INDEX=5108
 OUTPUT_PATH='./output.xlsx'
 ASTE_PATH='./aste'
 ASTE_FILES_PREFIX='RisultatoGlobale_'
@@ -66,7 +66,7 @@ COLUMN_MAPPING= column_mapping = {
     'Alimentation': [''],
     'SourceDate': [''],
 }
-USE_PREFIX_CHECK_ON_EXCEL_FILES = True
+USE_PREFIX_CHECK_ON_EXCEL_FILES = False
 
 def to_lowercase_purged(s: str) -> str:
     s = s.lower()
@@ -140,8 +140,15 @@ def get_key_for_combined(item: dict[str, str], is_vehicle = False, with_subtitle
         return to_lowercase_purged('Catawiki_special_case' + '///' + internal_code)
 
     if fix_combined_maison(item['Maison']) == 'H&H':
-        val = ('https://www.handh.co.uk/auction/search?au=' + item['Event_ref']) if is_vehicle else item['URL website']
-        return to_lowercase_purged(val)
+        if is_vehicle:
+            val = item['Event_ref']
+        else:
+            try:
+                val = item['URL website'].split('?au=')[1]
+            except:
+                print('Problem with H&H url: ' + item['URL website'])
+                return None
+        return to_lowercase_purged(f'H&H///{val}')
     
     if fix_combined_maison(item['Maison']) == 'Hermans':
         if is_vehicle:
@@ -219,8 +226,12 @@ def get_max_index_of_current_vehicles(vehicles: dict[str, dict[str, str]]) -> in
     max_index = 0
     for key in vehicles:
         if 'Index' in vehicles[key] and vehicles[key]['Index'] != '':
-            max_index = int(max(int(max_index), int(vehicles[key]['Index'])))
-    return int(max_index)
+            index_value = vehicles[key]['Index']
+            # strange check if the excel has float indexes
+            if '.' in index_value:
+                index_value = index_value.split('.')[0]
+            max_index = max(max_index, int(index_value))
+    return max_index
 
 def get_all_vehicles(only_some = False) -> dict[str, dict[str, str]]:
     vehicles = {}
@@ -231,7 +242,7 @@ def get_all_vehicles(only_some = False) -> dict[str, dict[str, str]]:
     return vehicles
         
 def numerate_new_vehicles(vehicles: dict[str, dict[str, str]], max_index: int):
-    max_index = int(max(max_index, int(FIRST_INDEX)))
+    max_index = max(max_index, FIRST_INDEX)
     for key in vehicles:
         if 'Index' not in vehicles[key] or vehicles[key]['Index'] == '':
             vehicles[key]['Index'] = str(max_index)
@@ -283,6 +294,6 @@ if __name__ == '__main__':
         raise Exception(f'Max index {max_index} is greater or equal than {FIRST_INDEX}')
     elif (max_index - FIRST_INDEX > 100):
         raise Exception(f'Max index {max_index} is too far from {FIRST_INDEX}')
-    vehicles = get_all_vehicles(only_some=True)
+    vehicles = get_all_vehicles(only_some=False)
     final_vehicles = merge_current_and_new_vehicles(current_vehicles, vehicles, combined_results, max_index)
     save_vehicles(final_vehicles, OUTPUT_PATH)
