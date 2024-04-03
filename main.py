@@ -3,7 +3,7 @@ import re
 import pandas as pd
 import json
 
-FIRST_INDEX=28910
+FIRST_INDEX=2712
 OUTPUT_PATH='./output.xlsx'
 ASTE_PATH='./aste'
 ASTE_FILES_PREFIX='RisultatoGlobale_'
@@ -184,7 +184,8 @@ def get_key_for_combined(item: dict[str, str], is_vehicle = False, with_subtitle
     
     if fix_combined_maison(item['Maison']) == 'Vavato':
         if is_vehicle:
-            val = item['PageUrl_extract']
+            parts = item['PageUrl_extract'].split('-')
+            val = '-'.join(parts[0:2] if len(parts) > 2 else parts)
         else:
             regexp_combined = "https://.*(A3-[\d-]+)"
             text = item['URL website']
@@ -249,7 +250,7 @@ def get_max_index_of_current_vehicles(vehicles: dict[str, dict[str, str]]) -> in
 def get_all_vehicles(only_some = False) -> dict[str, dict[str, str]]:
     vehicles = {}
     aste = get_aste_paths()
-    for asta in (aste[4:5] if only_some else aste):
+    for asta in (aste[13:14] if only_some else aste):
         print(asta)
         get_asta_vehicles(vehicles, asta)
     return vehicles
