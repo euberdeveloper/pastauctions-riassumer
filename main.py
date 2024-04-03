@@ -3,7 +3,7 @@ import re
 import pandas as pd
 import json
 
-FIRST_INDEX=5108
+FIRST_INDEX=28910
 OUTPUT_PATH='./output.xlsx'
 ASTE_PATH='./aste'
 ASTE_FILES_PREFIX='RisultatoGlobale_'
