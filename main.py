@@ -204,6 +204,8 @@ def merge_vehicles(old: dict[str, str], new: dict[str, str]) -> dict[str, str]:
         new['val_min'] = old['val_min']
     if new['val_max'] == '':
         new['val_max'] = old['val_max']
+    if new['PhotoUrl'] == '':
+        new['PhotoUrl'] = old['PhotoUrl']
     if old['Index'] != '':
         new['Index'] = old['Index']
     if old['Lot'] != '':
